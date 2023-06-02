@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- bootstrap 5.0.2 css for design -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+<!-- font awesome css for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container-fluid">
+      <div class="container">
+        <div class="mx-auto mt-5" style="max-width: 700px;">
+          <div class="mb-3">
+            <input type="text" id="addUser" class="form-control" placeholder="Enter ToDo Name" aria-label="Recipient's username" aria-describedby="button-addon2">
+            
+          </div>
+          <div class="filter my-3">
+            <div class="row justify-content-between">
+              <div class="col"> 
+              </div>
+              <div class="col">
+                <div class="input-group">
+                  <input type="search" class="form-control" placeholder="Search..." aria-label="Recipient's username" id="search" >
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="display">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th scope="col">TODO List Name</th>
+                  <th scope="col"></th>
+                </tr>
+              </thead>
+              <tbody id="records">
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+<script>
+const addUserBtn = document.getElementById('addUser');
+const btnText = addUserBtn.innerText;
+const recordsDisplay = document.getElementById('records');
+
+let todoArray = [];
+let edit_id = null;
+let allTr;
+let date = new Date().toJSON();
+
+
+let objStr = localStorage.getItem('users');
+
+if (objStr != null) {
+   todoArray = JSON.parse(objStr);
+}
+
+
+DisplayInfo();
+addUserBtn.addEventListener("keydown", function (e) {
+   let con= true
+   if (e.code === "Enter") {  //checks whether the pressed key is "Enter"
+   const name = addUserBtn.value;
+   if(name == ""){
+      alert("Please input todo")
+
+   }
+   else{
+      todoArray.forEach(todo=>{
+         console.log(todo.todo,name);
+         if(todo.todo == name){
+            con= false;
+           
+         }
+      })
+      if(!con){
+         alert("This todo is already in the list")
+      }else{
+         if (edit_id != null) {
+            //edit action
+            todoArray.splice(edit_id, 1, {
+               'todo': name
+            });
+            edit_id = null;
+         } else {
+            //insert action
+            todoArray.push({
+               'todo': name,
+               isCompleted: false,
+               createdAt: date
+
+            });
+         }
+      
+         SaveInfo(todoArray);
+         console.log(todoArray)
+         addUserBtn.value = '';
+         check()
+
+      }
+
+      }
+
+   }
+});
+
+
+// store user's name in local storage
+function SaveInfo(todoArray) {
+   let str = JSON.stringify(todoArray);
+   localStorage.setItem('users', str);
+   DisplayInfo();
+}
+
+// display user's name
+function DisplayInfo() {
+   let statement = '';
+   todoArray.forEach((user, i) => {
+      statement += `<tr values="${i}">
+           <td>${user.todo}</td>
+           <td class="d-flex flex-row-reverse"> <button class="btn-danger hide text-white " onclick='DeleteInfo(${i})'>Delete</button><button class="hide text-white btn-warning mx-2" onclick='EditInfo(${i})'>Edit</button><button id="com" class="hide text-white btn-info mx-2" onclick='Complete(${i},event)'>Complete</button></td>
+         </tr>`;
+   });
+   recordsDisplay.innerHTML = statement;
+
+//select all tr of table
+allTr = document.querySelectorAll('#records tr');
+}
+
+// edit user's name
+function EditInfo(id) {
+   edit_id = id;
+   addUserBtn.value = todoArray[id].todo;
+   check()
+}
+
+//delete user's name
+function DeleteInfo(id) {
+   todoArray.splice(id, 1);
+   SaveInfo(todoArray);
+   check()
+
+}
+//Complete function
+function Complete(id,event){
+   todoArray[id].isCompleted = true;
+   SaveInfo(todoArray);
+   check()
+ 
+}
+
+function check(){
+   for ( i in todoArray){
+      if (todoArray[i].isCompleted==true){
+         var len = recordsDisplay.childNodes;
+         recordsDisplay.childNodes[i].style.backgroundColor = "rgba(123, 255, 15, 0.788)"
+         recordsDisplay.childNodes[i].childNodes[3].childNodes[3].style.display = "none";
+         
+
+
+      }
+   }
+}
+check()
+
+//search feature code
+//get text as query from search text field
+const searchInputField = document.querySelector('#search');
+searchInputField.addEventListener('input', function (e) {
+   const searchStr = e.target.value.toLowerCase();
+   recordsDisplay.innerHTML = '';
+   allTr.forEach(tr => {
+      const td_in_tr = tr.querySelectorAll('td');
+      if (td_in_tr[0].innerText.toLowerCase().indexOf(searchStr) > -1) {
+         recordsDisplay.appendChild(tr);
+      }
+   });
+
+   if (recordsDisplay.innerHTML == '') {
+      recordsDisplay.innerHTML = 'No result';
+   }
+});
+</script>
+</body>
+</html>

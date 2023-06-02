@@ -1,0 +1,11 @@
+
+
+.hide {
+    opacity: 0;
+    padding: -1rem;
+  }
+tr:hover .hide {
+opacity: 5;
+
+
+}
